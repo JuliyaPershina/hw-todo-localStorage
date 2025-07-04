@@ -57,6 +57,32 @@ footer {
 
 main {
   height: 50%;
+  display: flex;
+  flex-direction: column;
+}
+
+main > div {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden; /* важливо, щоб прокрутка залишалася в #listTodo */
+}
+
+#listTodo {
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 0; /* обов’язково для flex-контейнерів з прокруткою */
+}
+
+#listTodo li {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-y: auto;
+  border-bottom: 1px solid #f0f0f0;
+}
+#listTodo li button {
+  align-self: flex-end;
 }
 
 footer {
@@ -76,6 +102,10 @@ main h2 {
   padding: 0.5rem;
   background-color: var(--fieldColor);
   border-radius: 6px;
+  box-sizing: border-box; /* дуже важливо для контролю ширини */
+  word-wrap: break-word; /* дозволяє переносити довгі слова */
+  overflow-wrap: break-word; /* для кращої підтримки в різних браузерах */
+  white-space: normal; /* дозволяє переносити текст */
 }
 
 .btn,
