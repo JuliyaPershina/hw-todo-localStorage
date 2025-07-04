@@ -12,7 +12,7 @@ submitTodo.addEventListener('click', (e) => {
   newTaskElement.textContent = newTask;
 
   correctListElement(newTaskElement);
-  taskList.appendChild(newTaskElement);
+  taskList.prepend(newTaskElement);
 
   // Додати до масиву tasks у localStorage
   const tasks = getTasksArray();
@@ -21,7 +21,8 @@ submitTodo.addEventListener('click', (e) => {
   localStorage.setItem('tasks', JSON.stringify(tasks));
 
   // Додати до історії
-  localStorage.setItem(`${localStorage.length + 1}`, `Додано: ${newTask}`);
+  const data = getDataString();
+  localStorage.setItem(`${localStorage.length + 1}`, `${data} додано: ${newTask}`);
 
   inputTodo.value = '';
 
@@ -56,7 +57,7 @@ function updateHistoryList() {
 
   const keys = Object.keys(localStorage)
     .filter((key) => !isNaN(key))
-    .sort((a, b) => Number(a) - Number(b));
+    .sort((a, b) => Number(b) - Number(a));
 
   keys.forEach((key) => {
     const item = document.createElement('li');
@@ -70,6 +71,7 @@ function correctListElement(listElement) {
     e.stopPropagation();
 
     const existingBtns = listElement.querySelectorAll('.btn');
+    const existingBtnCors = listElement.querySelectorAll('.btnCor');
     if (existingBtns.length) {
       existingBtns.forEach((btn) => btn.remove());
       return;
@@ -78,12 +80,16 @@ function correctListElement(listElement) {
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Видалити';
     deleteBtn.classList.add('btn');
+    let data;
 
     const editBtn = document.createElement('button');
     editBtn.textContent = 'Редагувати';
     editBtn.classList.add('btn');
 
-    listElement.append(deleteBtn, editBtn);
+    if (!existingBtnCors.length) {
+      listElement.append(deleteBtn, editBtn);
+    }
+    
 
     deleteBtn.addEventListener('click', () => {
       const textToDelete = listElement.firstChild.textContent.trim();
@@ -94,9 +100,10 @@ function correctListElement(listElement) {
       localStorage.setItem('tasks', JSON.stringify(tasks));
 
       // Додаємо до історії
+      data = getDataString()
       localStorage.setItem(
         `${localStorage.length + 1}`,
-        `Видалено: ${textToDelete}`
+        `${data} видалено: ${textToDelete}`
       );
 
       listElement.remove();
@@ -136,9 +143,10 @@ function correctListElement(listElement) {
         localStorage.setItem('tasks', JSON.stringify(tasks));
 
         // Історія
+        data = getDataString();
         localStorage.setItem(
           `${localStorage.length + 1}`,
-          `Редаговано: ${oldText} → ${newText}`
+          `${data} редаговано: ${oldText} → ${newText}`
         );
 
         input.remove();
@@ -161,6 +169,20 @@ function correctListElement(listElement) {
       });
     });
   });
+}
+
+function getDataString() {
+  const now = new Date();
+
+  const day = now.getDate().toString().padStart(2, '0');
+  const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Місяці з 0
+  const year = now.getFullYear();
+
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+
+  const dataString = `${day}.${month}.${year}   ${hours}:${minutes}`;
+  return dataString;
 }
 
 // Після завантаження сторінки
