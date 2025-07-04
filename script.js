@@ -1,41 +1,69 @@
 const inputTodo = document.getElementById('inputTodo');
 const submitTodo = document.getElementById('submitTodo');
 
+// Обробляємо кнопку "Зберегти"
 submitTodo.addEventListener('click', (e) => {
   e.preventDefault();
-  const newChallenge = inputTodo.value.trim();
-    const storageKey = localStorage.length + 1;
-    
-    if (newChallenge) {
-        const challengeList = document.getElementById('listTodo');
-  const newChallengeElement = document.createElement('li');
-  correctListElement(newChallengeElement);
-  newChallengeElement.textContent = newChallenge;
-  getStorageInformation();
+  const newTask = inputTodo.value.trim();
+  if (!newTask) return;
 
-  // Додаємо новий елемент до списку
-  challengeList.appendChild(newChallengeElement);
-  localStorage.setItem(storageKey, newChallenge);
+  const taskList = document.getElementById('listTodo');
+  const newTaskElement = document.createElement('li');
+  newTaskElement.textContent = newTask;
+
+  correctListElement(newTaskElement);
+  taskList.appendChild(newTaskElement);
+
+  // Додати до масиву tasks у localStorage
+  const tasks = getTasksArray();
+
+  tasks.push(newTask);
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+
+  // Додати до історії
+  localStorage.setItem(`${localStorage.length + 1}`, `Додано: ${newTask}`);
+
   inputTodo.value = '';
-  getStorageInformation();
-  rememberChallenges();
-    }
 
-  
+  updateHistoryList();
 });
 
-const getStorageInformation = () => {
-  const historyList = document.getElementById('historyList');
-  historyList.textContent = '';
-
-  for (let index = localStorage.length ; index >= 1; index--) {
-    const newHistoryElement = document.createElement('li');
-    newHistoryElement.textContent = localStorage[index];
-    historyList.appendChild(newHistoryElement);
+function getTasksArray() {
+  const tasksStr = localStorage.getItem('tasks');
+  try {
+    return tasksStr ? JSON.parse(tasksStr) : [];
+  } catch (e) {
+    return [];
   }
-};
+}
 
+function updateTaskList() {
+  const tasks = getTasksArray();
+  const taskList = document.getElementById('listTodo');
+  taskList.innerHTML = '';
 
+  tasks.forEach((task) => {
+    const taskEl = document.createElement('li');
+    taskEl.textContent = task;
+    correctListElement(taskEl);
+    taskList.appendChild(taskEl);
+  });
+}
+
+function updateHistoryList() {
+  const historyList = document.getElementById('historyList');
+  historyList.innerHTML = '';
+
+  const keys = Object.keys(localStorage)
+    .filter((key) => !isNaN(key))
+    .sort((a, b) => Number(a) - Number(b));
+
+  keys.forEach((key) => {
+    const item = document.createElement('li');
+    item.textContent = localStorage.getItem(key);
+    historyList.appendChild(item);
+  });
+}
 
 function correctListElement(listElement) {
   listElement.addEventListener('click', (e) => {
@@ -47,7 +75,6 @@ function correctListElement(listElement) {
       return;
     }
 
-    // Інакше — додаємо кнопки Видалити і Редагувати
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = 'Видалити';
     deleteBtn.classList.add('btn');
@@ -56,32 +83,32 @@ function correctListElement(listElement) {
     editBtn.textContent = 'Редагувати';
     editBtn.classList.add('btn');
 
-    const buttons = listElement.querySelectorAll('button'); // отримуємо всі кнопки в елементі
+    listElement.append(deleteBtn, editBtn);
 
-    const hasBtnCor = Array.from(buttons).some((btn) =>
-      btn.classList.contains('btnCor')
-    );
+    deleteBtn.addEventListener('click', () => {
+      const textToDelete = listElement.firstChild.textContent.trim();
 
-    if (!hasBtnCor) {
-      listElement.append(deleteBtn, editBtn);
-    }
+      // Оновлюємо масив
+      let tasks = getTasksArray();
+      tasks = tasks.filter((t) => t !== textToDelete);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
 
-    deleteBtn.addEventListener('click', (event) => {
-      event.stopPropagation();
-        listElement.remove();
-        rememberChallenges()
+      // Додаємо до історії
+      localStorage.setItem(
+        `${localStorage.length + 1}`,
+        `Видалено: ${textToDelete}`
+      );
+
+      listElement.remove();
+      updateHistoryList();
     });
 
-    editBtn.addEventListener('click', (event) => {
-      event.stopPropagation();
-
+    editBtn.addEventListener('click', () => {
       const oldText = listElement.firstChild.textContent.trim();
 
-      // При переході в режим редагування видаляємо кнопки Видалити і Редагувати
       deleteBtn.remove();
       editBtn.remove();
 
-      // Створюємо інпут для редагування
       const input = document.createElement('input');
       input.type = 'text';
       input.value = oldText;
@@ -94,91 +121,48 @@ function correctListElement(listElement) {
       cancelBtn.textContent = 'Відміна';
       cancelBtn.classList.add('btnCor');
 
-      // Очищаємо текст, вставляємо інпут
       listElement.firstChild.textContent = '';
       listElement.insertBefore(input, listElement.firstChild);
-      rememberChallenges()
+      listElement.append(saveBtn, cancelBtn);
 
-      // Додаємо кнопки Зберегти і Відміна
-        listElement.append(saveBtn, cancelBtn);
+      saveBtn.addEventListener('click', () => {
+        const newText = input.value.trim();
+        if (!newText) return;
 
-      saveBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
+        // Оновлюємо масив
+        let tasks = getTasksArray();
+        const index = tasks.indexOf(oldText);
+        if (index !== -1) tasks[index] = newText;
+        localStorage.setItem('tasks', JSON.stringify(tasks));
 
-        if (input.value.trim() !== oldText && input.value.trim() !== "") {
-          const newEl = input.value.trim();
-          localStorage.setItem(`${localStorage.length + 1}`, newEl);
-          getStorageInformation();
-        }
-        const newText = input.value.trim() || oldText;
-        
-        rememberChallenges();
+        // Історія
+        localStorage.setItem(
+          `${localStorage.length + 1}`,
+          `Редаговано: ${oldText} → ${newText}`
+        );
+
         input.remove();
         saveBtn.remove();
         cancelBtn.remove();
 
-          listElement.firstChild.textContent = newText;
-          rememberChallenges()
-
-        // Повертаємо кнопки Видалити і Редагувати
+        listElement.firstChild.textContent = newText;
         listElement.append(deleteBtn, editBtn);
+
+        updateHistoryList();
       });
 
-      cancelBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-
+      cancelBtn.addEventListener('click', () => {
         input.remove();
         saveBtn.remove();
         cancelBtn.remove();
 
         listElement.firstChild.textContent = oldText;
-
-        // Повертаємо кнопки Видалити і Редагувати
         listElement.append(deleteBtn, editBtn);
       });
     });
   });
 }
 
-
-
-const toBuildOldList = () => {
-  const oldListString = localStorage.getItem('oldList');
-
-  if (!oldListString) {
-    return [];
-  }
-
-  try {
-    const oldList = JSON.parse(oldListString); // Перетворюємо JSON-рядок у масив
-    console.log(oldList); 
-    oldList.forEach((challenge) => {
-      const oldlistItem = document.createElement('li');
-        oldlistItem.textContent = challenge;
-        correctListElement(document.getElementById('listTodo').appendChild(oldlistItem));
-    });
-    return oldList;
-  } catch (error) {
-    console.error('Помилка при парсингу старого списку:', error);
-    return [];
-  }
-};
-
-function rememberChallenges() {
-
-  const masChallenges = [];
-  const listTodo = document.getElementById('listTodo');
-
-  const items = listTodo.querySelectorAll('li');
-  items.forEach((li) => {
-    const text = li.firstChild.textContent.trim();
-    masChallenges.push(text);
-  });
-
-  localStorage.setItem('oldList', JSON.stringify(masChallenges));
-};
-
-toBuildOldList();
-getStorageInformation();
-
-
+// Після завантаження сторінки
+updateTaskList();
+updateHistoryList();
