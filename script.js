@@ -22,7 +22,7 @@ submitTodo.addEventListener('click', (e) => {
 
   // Додати до історії
   const data = getDataString();
-  localStorage.setItem(`${localStorage.length + 1}`, `${data} додано: ${newTask}`);
+  localStorage.setItem(`${localStorage.length + 1}`, `${data} added: ${newTask}`);
 
   inputTodo.value = '';
 
@@ -78,16 +78,20 @@ function correctListElement(listElement) {
     }
 
     const deleteBtn = document.createElement('button');
-    deleteBtn.textContent = 'Видалити';
+    deleteBtn.textContent = 'Delete';
     deleteBtn.classList.add('btn');
     let data;
 
     const editBtn = document.createElement('button');
-    editBtn.textContent = 'Редагувати';
+    editBtn.textContent = 'Edit';
     editBtn.classList.add('btn');
 
+    const btnContainer = document.createElement('div');
+    btnContainer.classList.add('btnContainer');
+    btnContainer.append(deleteBtn, editBtn);
+
     if (!existingBtnCors.length) {
-      listElement.append(deleteBtn, editBtn);
+      listElement.append(btnContainer);
     }
     
 
@@ -103,71 +107,73 @@ function correctListElement(listElement) {
       data = getDataString()
       localStorage.setItem(
         `${localStorage.length + 1}`,
-        `${data} видалено: ${textToDelete}`
+        `${data} deleted: ${textToDelete}`
       );
 
       listElement.remove();
       updateHistoryList();
     });
 
+
     editBtn.addEventListener('click', () => {
       const oldText = listElement.firstChild.textContent.trim();
 
-      deleteBtn.remove();
-      editBtn.remove();
+      btnContainer.remove(); // видаляємо кнопки Edit/Delete
 
       const input = document.createElement('input');
       input.type = 'text';
       input.value = oldText;
 
       const saveBtn = document.createElement('button');
-      saveBtn.textContent = 'Зберегти';
+      saveBtn.textContent = 'Save';
       saveBtn.classList.add('btnCor');
 
       const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = 'Відміна';
+      cancelBtn.textContent = 'Cancel';
       cancelBtn.classList.add('btnCor');
+
+      // об'єднуємо Save/Cancel у контейнер
+      const btnCorContainer = document.createElement('div');
+      btnCorContainer.classList.add('btnCorContainer');
+      btnCorContainer.append(saveBtn, cancelBtn);
 
       listElement.firstChild.textContent = '';
       listElement.insertBefore(input, listElement.firstChild);
-      listElement.append(saveBtn, cancelBtn);
+      listElement.append(btnCorContainer); //  додаємо контейнер
 
       saveBtn.addEventListener('click', () => {
         const newText = input.value.trim();
         if (!newText) return;
 
-        // Оновлюємо масив
         let tasks = getTasksArray();
         const index = tasks.indexOf(oldText);
         if (index !== -1) tasks[index] = newText;
         localStorage.setItem('tasks', JSON.stringify(tasks));
 
-        // Історія
-        data = getDataString();
+        const data = getDataString();
         localStorage.setItem(
           `${localStorage.length + 1}`,
-          `${data} редаговано: ${oldText} → ${newText}`
+          `${data} edited: ${oldText} → ${newText}`
         );
 
         input.remove();
-        saveBtn.remove();
-        cancelBtn.remove();
+        btnCorContainer.remove();
 
         listElement.firstChild.textContent = newText;
-        listElement.append(deleteBtn, editBtn);
+        listElement.append(btnContainer); // повертаємо кнопки Edit/Delete
 
         updateHistoryList();
       });
 
       cancelBtn.addEventListener('click', () => {
         input.remove();
-        saveBtn.remove();
-        cancelBtn.remove();
+        btnCorContainer.remove();
 
         listElement.firstChild.textContent = oldText;
-        listElement.append(deleteBtn, editBtn);
+        listElement.append(btnContainer); // повертаємо кнопки Edit/Delete
       });
     });
+
   });
 }
 
@@ -183,6 +189,15 @@ function getDataString() {
 
   const dataString = `${day}.${month}.${year}   ${hours}:${minutes}`;
   return dataString;
+}
+
+document.getElementById('resetButton').addEventListener('click', cleanHisory);
+
+function cleanHisory() {
+  localStorage.clear();
+  updateHistoryList();
+  updateTaskList();
+  
 }
 
 // Після завантаження сторінки

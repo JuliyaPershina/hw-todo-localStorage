@@ -61,6 +61,9 @@ main {
   flex-direction: column;
 }
 
+main h2 {
+  margin: 0 0 1rem 0;
+}
 main > div {
   display: flex;
   flex-direction: column;
@@ -76,10 +79,15 @@ main > div {
 
 #listTodo li {
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
+  flex-wrap: wrap;
+
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
   overflow-y: auto;
   border-bottom: 1px solid #f0f0f0;
+  padding: 0.5rem;
 }
 #listTodo li button {
   align-self: flex-end;
@@ -88,11 +96,19 @@ main > div {
 footer {
   height: 25%;
 }
+footer .history {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+
+  margin-bottom: 1rem;
+}
 
 footer h2,
 main h2 {
   flex-shrink: 0;
-  margin: 0 0 1rem 0;
 }
 
 #historyList,
@@ -108,8 +124,18 @@ main h2 {
   white-space: normal; /* дозволяє переносити текст */
 }
 
+#listTodo li {
+  word-break: break-all;
+}
+
 .btn,
 .btnCor {
   margin-block-start: 5px;
   margin-inline-start: 5px;
+}
+
+.btnContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
 }

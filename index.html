@@ -10,20 +10,23 @@
 <body>
     <div class="wrapper">
         <header>
-            <h1>Мої завдання</h1>
-            <input type="text" placeholder="Введіть нове завдання" id="inputTodo">
-            <button type="button" id="submitTodo">Зберегти</button>
+            <h1>My tasks</h1>
+            <input type="text" placeholder="Enter a new task" id="inputTodo">
+            <button type="button" id="submitTodo">Save</button>
         </header>
         <main>
             <div>
-                <h2>Список завдань</h2>
+                <h2>List of tasks</h2>
                 <ul id="listTodo">
                   
                 </ul>
               </div>
         </main>
         <footer>
-            <h2>Історія зберігання завдань</h2>
+            <div class="history">
+                <h2>Task storage history</h2>
+                <button type="reset" id="resetButton">Clear history</button>
+            </div>
             <ul id="historyList">
                 
             </ul>
